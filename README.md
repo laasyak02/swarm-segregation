@@ -80,8 +80,8 @@ The videos below show one run of each strategy with colors switching every 500 s
 
 <table>
   <tr>
-    <td align="center"><video src="https://github.com/user-attachments/assets/0a1c8c8c-8812-4b69-839a-d1a42eb30176" controls></video><br><em>Random, every 500 steps (2x speed)</em></td>
-    <td align="center"><video src="https://github.com/user-attachments/assets/ff2a13b5-058c-45d5-a866-2ea51c520e75" controls></video><br><em>Fixed cycle, every 500 steps (2x speed)</em></td>
+    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/0a1c8c8c-8812-4b69-839a-d1a42eb30176" controls></video><br><em>Random, every 500 steps (2x speed)</em></td>
+    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/ff2a13b5-058c-45d5-a866-2ea51c520e75" controls></video><br><em>Fixed cycle, every 500 steps (2x speed)</em></td>
   </tr>
 </table>
 
@@ -97,8 +97,8 @@ The two runs below show the typical behavior and the exception:
 
 <table>
   <tr>
-    <td align="center"><video src="https://github.com/user-attachments/assets/01641099-677b-492b-a8aa-41489e0416df" controls></video><br><em>Threshold 0.65: robots gradually adopt the color most of them started with, and the whole swarm ends up one color.</em></td>
-    <td align="center"><video src="https://github.com/user-attachments/assets/2164f0f1-7d21-4912-9824-51bddcd60331" controls></video><br><em>Threshold 0.5: the swarm still ends up one color, but not the starting majority.</em></td>
+    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/01641099-677b-492b-a8aa-41489e0416df" controls></video><br><em>Threshold 0.65: robots gradually adopt the color most of them started with, and the whole swarm ends up one color.</em></td>
+    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/2164f0f1-7d21-4912-9824-51bddcd60331" controls></video><br><em>Threshold 0.5: the swarm still ends up one color, but not the starting majority.</em></td>
   </tr>
 </table>
 
