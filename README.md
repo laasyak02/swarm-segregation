@@ -80,7 +80,7 @@ The videos below show one run of each strategy with colors switching every 500 s
 
 <table>
   <tr>
-    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/0a1c8c8c-8812-4b69-839a-d1a42eb30176" controls></video><br><em>Random, every 500 steps (2x speed)</em></td>
+    <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/6d789b5b-c427-4b16-8795-b31cb1396222" controls></video><br><em>Random, every 500 steps (2x speed)</em></td>
     <td align="center" valign="top" width="50%"><video src="https://github.com/user-attachments/assets/ff2a13b5-058c-45d5-a866-2ea51c520e75" controls></video><br><em>Fixed cycle, every 500 steps (2x speed)</em></td>
   </tr>
 </table>
