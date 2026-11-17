@@ -1,0 +1,404 @@
+
+#
+# A VERY BASIC DIFFUSION ALGORITHM
+# Not the smartest one, but a simple one to show the syntax of Buzz
+#
+
+
+# To select a robot, shift-click on it.
+# An additional widget will appear in the editor that shows the global
+# variables and functions defined in that robot.
+
+# Once a robot is selected, you can move it elsewhere with CTRL-click on Linux
+# and CMD-click on Mac.
+
+# To deselect the robot, shift-click in an empty spot on the arena.
+
+# To run this script, click on the cog icon. That icon launches the compiler
+# and automatically uploads the compiled bytecode onto the robots.
+# After that, press the "play" button in the simulator window, and the robots
+# will start moving.
+
+# File inclusion works this way:
+# 1. The compiler first looks for the specified file in the current folder;
+# 2. If not found, the compiler loops through the folders in the environment
+#    variable BUZZ_INCLUDE_PATH. This variable contains a list of folders
+#    separated by colon, e.g., "/path/to/folder1:/path/to/folder2".
+#    Avoid folders with spaces, since that gets the parser confused.
+#
+# In this script, for the include command to work, make sure to type
+#
+# export BUZZ_INCLUDE_PATH=/usr/local/share/buzz/include
+#
+# prior to running argos3 -c hw7.argos. You can also add that command to your
+# ~/.bashrc file, so you don't need to type it every time.
+include "vec2.bzz"
+
+# Somne global variables
+#valid_neighbor_count = 0
+
+R = 8.55
+VMax = 100
+switchFreq = 100
+aggTime = 300
+
+robotTable = {}
+
+#fixedColorList = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'black', 'white']
+
+fixedColorList = {}
+fixedColorList[0] = "red"
+fixedColorList[1] = "green"
+fixedColorList[2] = "blue"
+fixedColorList[3] = "yellow"
+fixedColorList[4] = "cyan"
+fixedColorList[5] = "magenta"
+fixedColorList[6] = "black"
+fixedColorList[7] = "white"
+
+#fixedColorListNew = fixedColorList
+fixedColorListNew = {}
+foreach(fixedColorList, function(k, v){
+    fixedColorListNew[k] = v
+})
+
+
+
+fixedColorList5 = {}
+fixedColorList5[0] = "red"
+fixedColorList5[1] = "green"
+fixedColorList5[2] = "blue"
+fixedColorList5[3] = "black"
+fixedColorList5[4] = "white"
+
+colorNumber = 8
+
+# Executed once when the robot is spawned in the arena
+function init() {
+
+	t = 0
+	i=0
+
+
+	colors_list = {}
+
+
+	doneColors = 0
+	while (doneColors < colorNumber){
+		randInd = math.rng.uniform(0, colorNumber)	
+		randColor = fixedColorListNew[randInd]
+		
+		if (randColor != nil){
+			
+			colors_list[doneColors] = randColor
+			doneColors = doneColors + 1
+			fixedColorListNew[randInd] = nil
+
+		}
+	}
+	#log("ROBOT ", id, " COLOR LIST ")
+	#log(colors_list[0])
+	#log(colors_list[1])
+	#log(colors_list[2])
+	#log(colors_list[3])
+	#log(colors_list[4])
+	#log(colors_list[5])
+	#log(colors_list[6])
+	#log(colors_list[7])
+
+	color = colors_list[i]
+	if (color == "red"){
+		set_leds(255, 0, 0)
+	} else if (color == "green"){
+		set_leds(0, 255, 0)
+	} else if (color == "blue"){
+		set_leds(0, 0, 255)
+	} else if (color == "yellow"){
+		set_leds(255, 255, 0)
+	} else if (color == "cyan"){
+		set_leds(0, 255, 255)
+	} else if (color == "magenta"){
+		set_leds(255, 0, 255)
+	} else if (color == "black"){
+		set_leds(0, 0, 0)
+	} else { #white
+		set_leds(255, 255, 255)
+	}
+
+	valid_neighbors = {}
+	min_dist = nil
+	min_rid = nil
+	min_data = nil
+
+	S = nil
+
+	last_color = {}
+	neighbors.listen("color", function(cid, value, rid){
+		#log("HEARD A MESSAGE")
+		#log("HEARD A MESSAGE from ", rid, " with value ", value)
+		last_color[rid] = value
+	})
+
+	mainTable = stigmergy.create(1)
+}
+
+
+
+# Executed once every time step
+function step() {
+	t = t + 1
+	if (t>aggTime and t % switchFreq == 0) {
+		log("COLOR SWITCH, t = ", t)
+		if (i == colorNumber-1) {
+			i = 0
+		}
+		else {
+			i = i + 1
+		}
+		color = colors_list[i]
+		if (color == "red"){
+			set_leds(255, 0, 0)
+		} else if (color == "green"){
+			set_leds(0, 255, 0)
+		} else if (color == "blue"){
+			set_leds(0, 0, 255)
+		} else if (color == "yellow"){
+			set_leds(255, 255, 0)
+		} else if (color == "cyan"){
+			set_leds(0, 255, 255)
+		} else if (color == "magenta"){
+			set_leds(255, 0, 255)
+		} else if (color == "black"){
+			set_leds(0, 0, 0)
+		} else { #white
+			set_leds(255, 255, 255)
+		}
+	}
+	debug.print(id)
+	neighbors.broadcast("color", color)
+	min_rid = nil
+	min_dist = nil
+
+	# Finding "closest neighbor in line of sight"
+	neighbors.foreach(function(rid, data){
+		#log("Neighbor Entry For Robot ", id, ": ",
+		#"robot", rid, ": ",
+		#"distance = ", data.distance, ", ",
+		#"azimuth = ", data.azimuth, ", ",
+		#"elevation = ", data.elevation)
+		
+		# Finding angle threshold for line of sight
+		del_theta = math.asin((R/data.distance))
+		del_theta = 0.349
+		if (math.abs(data.azimuth)<del_theta){
+			#valid_neighbors[rid] = data
+			
+			if (min_dist == nil or data.distance<min_dist){
+				min_dist = data.dist
+				min_data = data
+				min_rid = rid
+			}
+		}
+	})
+	
+	#Optional logging statement
+	#log("Closest neighbor for robot ", id, " is robot ", min_rid)
+	
+	# Assigning S based on color of closest LOS neighbor
+	if(min_rid != nil){
+		#log("Robot ", id, " logging neighbor color ", last_color[min_rid], " logging self color ", color)
+		if(last_color[min_rid] == color){
+			S = 1
+		} else {
+			S = 2
+		}		
+	} else {
+		S = 0
+	}
+	
+	#Optional logging statement
+	#log("Robot ", id, " has S = ", S)
+
+	#Control strategy stuff goes here
+
+	if (S==0){
+		set_wheels(-1.0*VMax, 0.33*VMax)
+	} else if (S==1){
+		set_wheels(0.33*VMax, 1.0*VMax)
+	} else if (S==2){
+		set_wheels(-1.0*VMax, 1.0*VMax)
+	} else {
+		#set_wheels(0.0, 0.0)
+	}
+
+	pos = pose.position	
+	currEntry = {}
+	currEntry["x"] = pos.x
+	currEntry["y"] = pos.y
+	currEntry["color"] = color
+
+	neighbors.broadcast("currEntry", currEntry)
+	robotTable[id] = currEntry
+
+	mainTable.put(id, currEntry)
+
+	color_iter = 0
+	costFunc = {}
+	currentIterCost = 0
+	#log(size(fixedColorList))
+	while(color_iter<size(fixedColorList)){
+		#log("loop")
+		costFunc[color_iter] = processStigmergy(color_iter)
+		#processStigmergy(color_iter)
+		#log("Cost for color: ", color_iter, " is ", costFunc[color_iter])
+		currentIterCost = currentIterCost + costFunc[color_iter]
+
+		color_iter = color_iter + 1
+		
+	}
+	#costTotal = costTotal + t*currentIterCost/8
+	costTotal = currentIterCost/8
+	#log("Current Cost Total: ", costTotal)
+	log(t, " ", costTotal)
+
+}
+
+function processStigmergy(colorIndex){
+	#Handling red first
+	#colorIndex = 0
+
+	distThresh = 0.23
+	colorCount = 0
+	clusterMat = {}
+
+	i = 0
+	while(i<23){
+		#log("Looking at agent ", i)
+		if (mainTable.get(i) != nil){
+			currRobotEntry = mainTable.get(i)
+			currRobotColor = currRobotEntry.color
+
+			if (currRobotColor == fixedColorList[colorIndex]){
+				#check if already in a cluster
+				colorCount = colorCount + 1
+				
+				#log("Agent ", i, " is color ", colorIndex)
+				currRobotX = currRobotEntry.x
+				currRobotY = currRobotEntry.y
+
+				#if(clusterMat == nil){
+				if(size(clusterMat) == 0){	
+					#clusterMat is empty, create a cluster
+					#log("No clusters, creating a cluster")
+					newCluster = {}
+					newCluster[0] = i
+					clusterMat[0] = newCluster
+				} else {
+					#clusters are present, iterate through them
+
+					numClusters = size(clusterMat)
+					j = 0
+					
+					#log("Clusters found. Number of clusters: ", numClusters)
+			
+					currClusterMatch = 0
+					while(j<numClusters and currClusterMatch==0){
+						currCluster = clusterMat[j]
+						currClusterSize = size(currCluster)
+						#log("test log")
+						
+
+						k = 0
+						currClusterMatch = 0
+						while(k<currClusterSize and currClusterMatch==0){
+							#log("Checking existing cluster")
+							currClusterElemIdx = currCluster[k]
+							if(mainTable.get(currClusterElemIdx) != nil){
+								
+								
+
+								currClusterElemData = mainTable.get(currClusterElemIdx)
+								currClusterElemX = currClusterElemData.x
+								currClusterElemY = currClusterElemData.y
+								
+								dx = currRobotX - currClusterElemX
+								dy = currRobotY - currClusterElemY
+								dist = math.sqrt(dx*dx + dy*dy)
+								#log("Distance between ", i, " and ", currClusterElemIdx, " is: ", dist)
+								if(dist<distThresh){
+									#log("Cluster match found for agent ", i)
+									currClusterMatch = 1
+									
+								}
+
+							}							
+
+							k = k + 1
+						}
+						
+						
+						j = j + 1
+					}
+
+					if (currClusterMatch == 1){
+						#current robot was matched to cluster j (element k)
+						#updating clusterMat
+						#log("Agent ", i, " matched to an EXISTING cluster")
+						currCluster = clusterMat[j-1]
+						currClusterSize = size(currCluster)
+						currCluster[currClusterSize] = i
+						clusterMat[j] = currCluster
+					} else {
+						#log("Agent ", i, " creates a NEW cluster")
+						clusterMatLength = size(clusterMat)
+						newCluster = {}
+						newCluster[0] = i
+						clusterMat[clusterMatLength] = newCluster
+		
+
+					}
+				}
+			}
+		}
+		i = i + 1
+	}
+
+	numClusters = size(clusterMat)
+	cluster_i = 0
+	largestClusterLength = 0
+	largestClusterIdx = nil
+	while(cluster_i<numClusters){
+		currentCluster = clusterMat[cluster_i]
+		currentClusterLength = size(currentCluster)
+
+		if (currentClusterLength > largestClusterLength){
+			largestClusterLength = currentClusterLength
+			largestClusterIdx = cluster_i
+		}
+		cluster_i = cluster_i + 1
+	}
+	
+	if (largestClusterIdx != nil){
+		largestCluster = clusterMat[largestClusterIdx]
+	} else {
+		largestCluster = nil
+	}
+	
+	#log("Largest cluster size for color: ", colorIndex, " is ", largestClusterLength)
+	#log("Total agents of color: ", colorIndex," is: ", colorCount)
+	#returnVal = (largestClusterLength/colorCount)
+	if (colorCount == 0){
+		returnVal = 0
+	} else {
+		returnVal = largestClusterLength*-1.0/colorCount
+	}
+	return returnVal
+}
+
+# Executed when you press the Reset button in the simulation window
+function reset() {
+}
+
+# Executed once when the robot is removed from the arena
+function destroy() {
+}
