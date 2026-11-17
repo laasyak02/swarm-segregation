@@ -71,7 +71,7 @@ In the plots, red points mark color switches.
   </tr>
 </table>
 
-<!-- VIDEO (optional): random or fixed-cycle switching run, if you have a recording -->
+<!-- VIDEO: drag random_switching_500_2x.mp4 and fixed_cycle_500_2x.mp4 here, side by side (captions: Random, every 500 steps (2x speed) / Fixed cycle, every 500 steps (2x speed)) -->
 
 ### Majority switching (Schelling-inspired)
 
