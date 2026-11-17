@@ -20,7 +20,12 @@ In the original model, each robot has only a **ternary sensor** that looks strai
 
 Each reading maps directly to a pair of wheel speeds. There is no global communication, planning or computation, yet robots of the same color end up grouped together.
 
-**Measuring segregation.** For each color, the cost is the size of the largest cluster of that color divided by the total number of robots of that color, negated. Averaging over all colors gives a score `γ(t)` from **0 (not segregated)** to **−1 (fully segregated)**. Robot positions come from a positioning sensor and are shared through **virtual stigmergy**, so the cost is computed by the swarm itself during the run.
+**Measuring segregation.** Segregation is scored with the cost function from the original paper:
+
+- **Per color:** find the largest group of robots of that color that are clustered together, and divide its size by the total number of robots of that color. With 3 red robots, the score is 3/3 if all three are together, and 1/3 if they are all apart.
+- **Whole swarm:** average this over all 8 colors and make it negative, giving a single score `γ(t)` at every time step.
+- **Reading the score:** `γ` closer to **−1** means more segregated (every color in one group), and closer to **0** means more mixed. A color change makes `γ` jump up toward 0, and good recovery means it falls back toward −1.
+- **How it's computed:** each robot gets its position from a positioning sensor and shares it with its color through **virtual stigmergy**, so the swarm computes the score itself while running.
 
 ---
 
